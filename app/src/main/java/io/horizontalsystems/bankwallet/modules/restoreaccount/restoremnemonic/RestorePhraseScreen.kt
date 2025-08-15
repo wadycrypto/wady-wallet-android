@@ -368,26 +368,26 @@ fun RestorePhrase(
                             }
                         )
                     }
-                    VSpacer(32.dp)
-                    CellSingleLineLawrenceSection {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clickable {
-                                    openRestoreAdvanced?.invoke()
-                                }
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            body_leah(text = stringResource(R.string.Button_Advanced))
-                            Spacer(modifier = Modifier.weight(1f))
-                            Image(
-                                modifier = Modifier.size(20.dp),
-                                painter = painterResource(id = R.drawable.ic_arrow_right),
-                                contentDescription = null,
-                            )
-                        }
-                    }
+//                    VSpacer(32.dp)
+//                    CellSingleLineLawrenceSection {
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxSize()
+//                                .clickable {
+//                                    openRestoreAdvanced?.invoke()
+//                                }
+//                                .padding(horizontal = 16.dp),
+//                            verticalAlignment = Alignment.CenterVertically,
+//                        ) {
+//                            body_leah(text = stringResource(R.string.Button_Advanced))
+//                            Spacer(modifier = Modifier.weight(1f))
+//                            Image(
+//                                modifier = Modifier.size(20.dp),
+//                                painter = painterResource(id = R.drawable.ic_arrow_right),
+//                                contentDescription = null,
+//                            )
+//                        }
+//                    }
 
                     Spacer(Modifier.height(32.dp))
                 }
@@ -496,7 +496,7 @@ private fun BottomSection(
             },
             {
                 PassphraseCell(
-                    enabled = uiState.passphraseEnabled,
+                    enabled = true,
                     onCheckedChange = viewModel::onTogglePassphrase
                 )
             }

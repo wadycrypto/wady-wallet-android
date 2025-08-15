@@ -17,6 +17,9 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -51,18 +54,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 
-
 class ImportWalletFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
         val input = navController.getInput<ManageAccountsModule.Input>()
-        val popUpToInclusiveId = input?.popOffOnSuccess ?: R.id.importWalletFragment
-        val inclusive = input?.popOffInclusive ?: true
+        val popUpToInclusiveId = input?.popOffOnSuccess ?: R.id.mainFragment   
+        val inclusive = input?.popOffInclusive ?: false
 
         ImportWalletScreen(navController, popUpToInclusiveId, inclusive)
     }
-
 }
 
 @Composable
@@ -74,6 +75,33 @@ private fun ImportWalletScreen(
     val bottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    // ---- Minimal-change auto-redirect to RestoreAccountFragment on first entry ----
+    // Auto-redirect once AND remove this fragment from back stack to avoid back-loop
+    val hasAutoRedirected = remember { mutableStateOf(false) }
+    if (!hasAutoRedirected.value) {
+        LaunchedEffect(Unit) {
+            hasAutoRedirected.value = true
+            navController.navigateWithTermsAccepted {
+                // remove ImportWalletFragment so back won't re-open it
+                navController.popBackStack(R.id.importWalletFragment, true)
+    
+                // now go to RestoreAccountFragment
+                navController.slideFromBottom(
+                    R.id.restoreAccountFragment,
+                    ManageAccountsModule.Input(popUpToInclusiveId, inclusive)
+                )
+    
+                // keep analytics
+                stat(
+                    page = StatPage.ImportWallet,
+                    event = StatEvent.Open(StatPage.ImportWalletFromKey)
+                )
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------------
 
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { uriNonNull ->
@@ -152,6 +180,7 @@ private fun ImportWalletScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 VSpacer(12.dp)
+                // Keep the UI options as a fallback if user navigates back from Restore
                 ImportOption(
                     title = stringResource(R.string.ImportWallet_RecoveryPhrase),
                     description = stringResource(R.string.ImportWallet_RecoveryPhrase_Description),

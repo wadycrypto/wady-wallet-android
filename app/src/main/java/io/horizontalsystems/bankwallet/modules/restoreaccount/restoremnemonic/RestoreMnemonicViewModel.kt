@@ -19,11 +19,12 @@ class RestoreMnemonicViewModel(
     accountFactory: IAccountFactory,
     private val wordsManager: WordsManager,
     private val thirdKeyboardStorage: IThirdKeyboard,
+    private val PASSPHRASE_PATTERN: Regex = Regex("^.{4} .{4} .{4} .{4}$"),
 ) : ViewModelUiState<UiState>() {
 
     val mnemonicLanguages = Language.values().toList()
 
-    private var passphraseEnabled: Boolean = false
+    private var passphraseEnabled: Boolean = true
     private var passphrase: String = ""
     private var passphraseError: String? = null
     private var wordItems: List<WordItem> = listOf()
@@ -59,6 +60,10 @@ class RestoreMnemonicViewModel(
         language = language,
     )
 
+    private fun isValidPassphraseFormat(passphrase: String): Boolean {
+        return PASSPHRASE_PATTERN.matches(passphrase)
+    }
+
     private fun processText() {
         wordItems = wordItems(text)
         invalidWordItems = wordItems.filter { !mnemonicWordList.validWord(it.word.normalizeNFKD(), false) }
@@ -92,6 +97,11 @@ class RestoreMnemonicViewModel(
     fun onEnterPassphrase(passphrase: String) {
         this.passphrase = passphrase
         passphraseError = null
+
+        // Validar formato XXXX XXXX XXXX XXXX si no está vacío
+        if (passphraseEnabled && passphrase.isNotBlank() && !isValidPassphraseFormat(passphrase)) {
+            passphraseError = "Passphrase must follow pattern: XXXX XXXX XXXX XXXX"
+        }
 
         emitState()
     }
